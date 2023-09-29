@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="robots" content="noindex, nofollow">
+  <title>DY Calc</title>
+  <style>
+    :root {
+      --bg-color: rgb(0, 0, 0);
+      --fg-color: rgb(255, 255, 255);
+      --cat1-color: rgb(255, 75, 255);
+      --cat2-color: rgb(255, 255, 75);
+      --cat3-color: rgb(75, 75, 255);
+    }
+    html,body {
+      margin: 0;
+      padding: 0;
+      touch-action: none;
+    }
+    body {
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Roboto', sans-serif;
+      font-size: 4vmin;
+      background-color: var(--bg-color);
+      color: var(--fg-color);
+    }
+    input, button {
+      font-size: inherit;
+      color: inherit;
+      background-color: inherit;
+    }
+    #calculator {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: 0.5fr repeat(4, 1fr);
+      gap: 0.3em;     
+      min-width: 100%;
+      min-height: 100%;
+      box-sizing: border-box;
+      padding: 0.3em;
+    }
+    #calculator > .result {
+      grid-column: span 2;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      justify-content: right;
+      align-items: center;
+      text-align: right;
+    }
+    #calculator > .result #total {
+      font-size: 2em;
+    }
+    #calculator > .result #total::after {
+      content: "\00a0€\2007";
+    }
+    .option, .switch label, .clear {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      box-sizing: border-box;
+      user-select: none;
+      border-width: 0.15em;
+      border-style: solid;
+      border-color: inherit;
+      padding: 1.4em 0.8em;
+      color: var(--cat-color, inherit);
+    }
+    .clear {
+      padding: 0.8em;
+    }
+    .option.cat1 {
+      --cat-color: var(--cat1-color);
+    }
+    .option.cat2 {
+      --cat-color: var(--cat2-color);
+    }
+    .option.cat3 {
+      --cat-color: var(--cat3-color);
+    }
+    .option::before {
+      content: '\2007\00a0';
+    }
+    .option[data-count]:not([data-count='']):not([data-count='0']) {
+      background-color: var(--cat-color);
+      border-color: var(--cat-color);
+      color: var(--bg-color);
+    }
+    .option[data-count]:not([data-count='']):not([data-count='0'])::before {
+      content: attr(data-count) '\00a0';
+    }
+    .option:not([data-price=''])::after{
+      content: "\00a0" attr(data-price);
+    }
+    .switch [type='checkbox'] {
+      display: none;
+    }
+    .switch [type='checkbox'] + label {
+      cursor: pointer;
+      text-decoration: line-through;
+    }
+    .switch [type='checkbox']:checked + label {
+      background-color: var(--fg-color);
+      border-color: var(--fg-color);
+      color: var(--bg-color);
+      text-decoration: inherit;
+    }
+  </style>
+  <script>
+    'use strict';
+    document.addEventListener('DOMContentLoaded', () => {
+      const $calculator = document.querySelector('#calculator');
+      const $total = document.querySelector('#total');
+      const $clear = document.querySelector('#clear');
+      const $member = document.querySelector('#member');
+      const $deposit = document.querySelector('#deposit');
+      const $options = $calculator.querySelectorAll('.option');
+
+      $clear.addEventListener('click', () => {
+        for (const $option of $options) {
+          $option.removeAttribute('data-count');
+          calc();
+        };
+      });
+
+      $member.addEventListener('change', () => calc());
+      $deposit.addEventListener('change', () => calc());
+
+      for (const $option of $options) {
+        $option.addEventListener('click', () => {
+          const count = Number.parseInt($option.getAttribute('data-count')) || 0;
+          $option.setAttribute('data-count', count + 1);
+          calc();
+        });
+      }
+
+      function calc() {
+        const member = $member.checked ? Number.parseFloat($member.getAttribute('data-price')) : 0;
+        const deposit = $deposit.checked ? Number.parseFloat($deposit.getAttribute('data-price')) : 0;
+
+        let total = 0;
+        for (const $option of $options) {
+          const count = Number.parseInt($option.getAttribute('data-count')) || 0;
+          const price = Number.parseFloat($option.getAttribute('data-price'));
+          total += count * (price + member + deposit);
+        }
+
+        $total.innerText = total.toFixed(2);
+      }
+
+      calc();
+    });
+  </script>
+</head>
+<body>
+<div id="calculator">
+  <div class="result">
+    <div id="total"></div>
+    <button class="clear" id="clear">AC</button>
+  </div>
+  <div class="switch">
+    <input type="checkbox" id="member" data-price="-0.2" checked/>
+    <label for="member">Mitglied</label>
+  </div>
+  <div class="switch">
+    <input type="checkbox" id="deposit" data-price="2" checked/>
+    <label for="deposit">Pfand</label>
+  </div>
+  <button class="option cat3" data-price="3.50">Longdrink</button>
+  <button class="option cat3" data-price="4.50">Cocktail</button>
+  <button class="option cat3" data-price="1.70">Shots</button>
+  <button class="option cat2" data-price="2.70">Spritz</button>
+  <button class="option cat1" data-price="3.50">Alkoholfrei</button>
+  <button class="option cat1" data-price="3.00">Alkoholfrei</button>
+</div>
+</body>
+</html>
