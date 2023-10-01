@@ -114,6 +114,23 @@
   </style>
   <script>
     'use strict';
+
+    // ServiceWorker Registration
+    // see: http://web.archive.org/web/20231001234310/https://dev.to/saurabhdaware/make-websites-work-offline-part-1-what-are-service-workers-and-how-to-get-a-custom-app-install-button-on-the-website-4a8
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('serviceworker.js')
+          .then(registration => {
+            // Registration was successful
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch(err => {
+            // registration failed
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const $calculator = document.querySelector('#calculator');
       const $total = document.querySelector('#total');

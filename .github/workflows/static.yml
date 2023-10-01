@@ -35,7 +35,7 @@ jobs:
       - name: Update service worker cache name
         shell: sh
         run: |
-          sed -i -E 's/^(const cacheName = )null(;)/\1"git_${{ github.sha }}"\2/' ./serviceworker.js
+          sed -i -E 's/^(\s+const cacheName = )null(;)/\1"git_${{ github.sha }}"\2/' ./serviceworker.js
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
