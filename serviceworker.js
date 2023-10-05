@@ -14,6 +14,9 @@
 
   // Install the service worker and open the cache and add files mentioned in array to cache
   self.addEventListener('install', (event) => {
+    // Update Immediately to latest version
+    self.skipWaiting();
+
     event.waitUntil(
       caches.open(cacheName)
         .then((cache) => {
@@ -56,5 +59,8 @@
         );
       })
     );
+
+    // Update Immediately to latest version
+    event.waitUntil(clients.claim());
   });
 })();
