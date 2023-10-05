@@ -38,7 +38,7 @@
     #calculator {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: 0.5fr repeat(4, 1fr);
+      grid-template-rows: 0.5fr repeat(6, 1fr);
       gap: 0.3em;     
       min-width: 100%;
       min-height: 100%;
@@ -69,7 +69,6 @@
       border-width: 0.15em;
       border-style: solid;
       border-color: inherit;
-      padding: 1.4em 0.8em;
       color: var(--cat-color, inherit);
     }
     .clear {
@@ -86,6 +85,7 @@
     }
     .option::before {
       content: '\2007\00a0';
+      font-weight: bold;
     }
     .option[data-count]:not([data-count='']):not([data-count='0']) {
       background-color: var(--cat-color);
@@ -179,7 +179,7 @@
 <div id="calculator">
   <div class="result">
     <div id="total"></div>
-    <button class="clear" id="clear">AC</button>
+    <button class="clear" id="clear">&ensp;AC&ensp;</button>
   </div>
   <div class="switch">
     <input type="checkbox" id="member" data-price="-0.2" checked/>
@@ -189,12 +189,16 @@
     <input type="checkbox" id="deposit" data-price="2" checked/>
     <label for="deposit">Pfand</label>
   </div>
-  <button class="option cat3" data-price="3.50">Longdrink</button>
   <button class="option cat3" data-price="4.50">Cocktail</button>
-  <button class="option cat3" data-price="1.70">Shots</button>
-  <button class="option cat2" data-price="2.70">Spritz</button>
-  <button class="option cat1" data-price="3.50">Alkoholfrei</button>
-  <button class="option cat1" data-price="3.00">Alkoholfrei</button>
+  <button class="option cat3" data-price="3.50">Longdrink</button>
+  <button class="option cat3" data-price="1.70">Shot</button>
+  <button class="option cat2" data-price="2.70">Wein &#9585; Spritz</button>
+  <button class="option cat1" data-price="3.50">Ginlt. Cocktail</button>
+  <button class="option cat2" data-price="2.30">Bier &#9585; Radler</button>
+  <button class="option cat1" data-price="3.00">Alkfr. Cocktail</button>
+  <button class="option cat1" data-price="2.20">Bull &#9585; Mate</button>
+  <button class="option cat1" data-price="1.70">Softdrink</button>
+  <button class="option cat1" data-price="1.20">Soda &#9585; Snack</button>
 </div>
 </body>
 </html>
