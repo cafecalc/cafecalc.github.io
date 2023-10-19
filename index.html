@@ -221,7 +221,7 @@
 
         if (cash > 0) {
           total = total - cash;
-          $calc.classList.add(total < 0 ? 'is-change' : 'is-change-missing');
+          $calc.classList.add(total <= 0 ? 'is-change' : 'is-change-missing');
         }
 
         $total.textContent = total.toLocaleString(locale, { style: 'currency', currency: 'EUR' });
