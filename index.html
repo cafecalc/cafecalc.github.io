@@ -20,14 +20,19 @@
       touch-action: none;
     }
     body {
+      box-sizing: border-box;
       height: 100vh;
+      height: 100svh;
       width: 100vw;
+      width: 100svw;
+      padding: 1.6em 0.3em;
       display: flex;
       justify-content: center;
       align-items: center;
       font-family: 'Roboto', '-apple-system', 'BlinkMacSystemFont', sans-serif;
       font-feature-settings: 'tnum';
       font-size: 4vmin;
+      font-size: 4svmin;
       background-color: var(--bg-color);
       color: var(--fg-color);
     }
@@ -43,8 +48,6 @@
       gap: 0.3em;     
       min-width: 100%;
       min-height: 100%;
-      box-sizing: border-box;
-      padding: 1.6em 0.3em;
     }
     #calculator > .result {
       grid-column: span 2;
@@ -193,13 +196,13 @@
   <button class="option cat3" data-price="4.50">Cocktail</button>
   <button class="option cat3" data-price="3.50">Longdrink</button>
   <button class="option cat3" data-price="1.70">Shot</button>
-  <button class="option cat2" data-price="2.70">Wein &#9585; Spritz</button>
-  <button class="option cat1" data-price="3.50">Ginlt. Cocktail</button>
-  <button class="option cat2" data-price="2.30">Bier &#9585; Radler</button>
-  <button class="option cat1" data-price="3.00">Alkfr. Cocktail</button>
-  <button class="option cat1" data-price="2.20">Bull &#9585; Mate</button>
+  <button class="option cat2" data-price="2.70">Wein&VeryThinSpace;/&VeryThinSpace;Spritz</button>
+  <button class="option cat1" data-price="3.50">Ginlt.&VeryThinSpace;Cocktail</button>
+  <button class="option cat2" data-price="2.30">Bier&VeryThinSpace;/&VeryThinSpace;Radler</button>
+  <button class="option cat1" data-price="3.00">Alkfr.&VeryThinSpace;Cocktail</button>
+  <button class="option cat1" data-price="2.20">Bull&VeryThinSpace;/&VeryThinSpace;Mate</button>
   <button class="option cat1" data-price="1.70">Softdrink</button>
-  <button class="option cat1" data-price="1.20">Soda &#9585; Snack</button>
+  <button class="option cat1" data-price="1.20">Soda&VeryThinSpace;/&VeryThinSpace;Snack</button>
 </div>
 </body>
 </html>
