@@ -11,6 +11,7 @@
       --bg-color: rgb(0, 0, 0);
       --fg-color: rgb(255, 255, 255);
       --change-color: rgb(255, 0, 0);
+      --trash-color: rgb(255, 0, 0);
       --cat1-color: rgb(255, 75, 255);
       --cat2-color: rgb(255, 255, 75);
       --cat3-color: rgb(75, 75, 255);
@@ -57,6 +58,9 @@
       grid-template-columns: 1fr auto auto;
       justify-content: right;
       align-items: center;
+    }
+    #calculator > .trash {
+      grid-column: span 2;
     }
     #calculator.is-change > .result #total {
       color: var(--change-color);
@@ -145,6 +149,12 @@
       color: var(--bg-color);
       text-decoration: inherit;
     }
+    .trash [type='checkbox'] + label {
+      fill: var(--fg-color)
+    }
+    .trash [type='checkbox']:checked + label  {
+      background-color: var(--trash-color)
+    }
   </style>
   <script>
     'use strict';
@@ -176,6 +186,7 @@
       const $deposit = $calc.querySelector('#deposit');
       const $depcount = $calc.querySelector('#depcount');
       const $options = $calc.querySelectorAll('.option');
+      const $trash = $calc.querySelector('#trash');
 
       $clear.addEventListener('click', () => {
         $cash.textContent = '';
@@ -192,7 +203,9 @@
       for (const $option of $options) {
         $option.addEventListener('click', () => {
           const count = Number.parseInt($option.getAttribute('data-count')) || 0;
-          $option.setAttribute('data-count', count + 1);
+          const isTrash = $trash.checked;
+          const newCount = isTrash ? Math.max(count - 1, 0) : count + 1
+          $option.setAttribute('data-count', newCount);
           calc();
         });
       }
@@ -257,6 +270,15 @@
   <button class="option cat1" data-price="2,20">Bull&VeryThinSpace;/&VeryThinSpace;Mate</button>
   <button class="option cat1" data-price="1,70">Softdrink</button>
   <button class="option cat1" data-price="1,20">Soda&VeryThinSpace;/&VeryThinSpace;Snack</button>
+  <div class="switch trash">
+    <input type="checkbox" id="trash" />
+    <label for="trash">
+      <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 448 512">
+        <!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+        <path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/>
+      </svg>
+    </label>
+  </div>
 </div>
 </body>
 </html>
