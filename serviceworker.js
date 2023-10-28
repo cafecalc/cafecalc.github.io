@@ -61,6 +61,6 @@
     );
 
     // Update Immediately to latest version
-    event.waitUntil(clients.claim());
+    event.waitUntil(self.clients.claim());
   });
 })();

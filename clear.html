@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
+  <script>
+    'use strict';
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const $log = document.querySelector('#log');
+      const log = (function() {
+        if ('performance' in window) {
+          const t0 = performance.now();
+          return function() { const t1 = performance.now(); $log.textContent += ('00' + (t1 - t0).toFixed(16)).slice(-20) + ': ' + [...arguments, ''].join('\n') };
+        }
+        return function() { $log.textContent += [...arguments, ''].join('\n') };
+      })();
+
+      try {
+
+        log('Check Service Worker feature');
+        if (!('serviceWorker' in navigator)) {
+          log('Service Workers are not available on your device / configuration.');
+        }
+  
+        log('Get all registered Service Workers');
+        navigator.serviceWorker.getRegistrations()
+          .then(function(registrations) {
+            log('Found: ' + registrations.length);
+            for (let i = 0; i < registrations.length; ++i) {
+              log('Unregister #' + i);
+              registrations[i].unregister()
+                .then(function(result) {
+                  log('Unregister #' + i + ': ' + result);
+                })
+                .catch(function(err) {
+                  log('Unregister #' + i + ': Failed', err);
+                });
+            }   
+          })
+          .catch(function(err) {
+            log('Failed to get registrations:', err);
+          });
+
+      } catch (err) {
+        log('Unexpected error:', err);
+      }
+
+      log('Exit DOMContentLoaded()');
+    });
+  </script>
+</head>
+<body>
+<pre id="log"></pre>
+</body>
+</html>
