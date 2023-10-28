@@ -198,7 +198,7 @@
       for (const $option of $options) {
         const updateCount = (amount) => {
           const count = Number.parseInt($option.getAttribute('data-count')) || 0;
-          $option.setAttribute('data-count', count + amount > 0 &&  count + amount < 99 ? count + amount : 0);
+          $option.setAttribute('data-count', count + amount > 0 &&  count + amount < 50 ? count + amount : 0);
           calc();
         };
 
