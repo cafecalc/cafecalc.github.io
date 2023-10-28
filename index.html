@@ -99,11 +99,17 @@
       align-items: center;
       height: 100%;
       box-sizing: border-box;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
       user-select: none;
       border-width: 0.15em;
       border-style: solid;
       border-color: inherit;
       color: var(--cat-color, inherit);
+    }
+    .option.is-active {
+      opacity: 0.75;
     }
     .clear {
       padding: 0.8em;
@@ -190,11 +196,37 @@
       $deposit.addEventListener('change', () => calc());
 
       for (const $option of $options) {
-        $option.addEventListener('click', () => {
+        const updateCount = (amount) => {
           const count = Number.parseInt($option.getAttribute('data-count')) || 0;
-          $option.setAttribute('data-count', count + 1);
+          $option.setAttribute('data-count', count + amount > 0 &&  count + amount < 99 ? count + amount : 0);
           calc();
-        });
+        };
+
+        if ('ontouchstart' in window) {
+          $option.addEventListener('touchstart', (event) => {
+            let longTouch = false;
+
+            const timer = window.setInterval(() => {
+              longTouch = true;
+              updateCount(-1);
+            }, 500);
+
+            $option.addEventListener('touchend', () => {
+              $option.classList.remove('is-active');
+              window.clearInterval(timer);
+              if (!longTouch) {
+                updateCount(1);
+              }
+            }, { once: true });
+
+            $option.classList.add('is-active');
+            event.preventDefault();
+          });
+        } else {
+          $option.addEventListener('click', () => {
+            updateCount(1);
+          });
+        }
       }
 
       function parseAnyFloat(value) {
