@@ -161,11 +161,9 @@
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('serviceworker.js')
           .then(registration => {
-            // Registration was successful
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
           })
           .catch(err => {
-            // registration failed
             console.log('ServiceWorker registration failed: ', err);
           });
       });
@@ -173,6 +171,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       const locale = document.documentElement.getAttribute('lang');
+      const isTouch = 'ontouchstart' in window;
 
       const $calc = document.querySelector('#calculator');
       const $cash = $calc.querySelector('#cash');
@@ -202,31 +201,25 @@
           calc();
         };
 
-        if ('ontouchstart' in window) {
-          $option.addEventListener('touchstart', (event) => {
-            let longTouch = false;
+        $option.addEventListener(isTouch ? 'touchstart' : 'mousedown', (event) => {
+          let longTouch = false;
 
-            const timer = window.setInterval(() => {
-              longTouch = true;
-              updateCount(-1);
-            }, 500);
+          const timer = window.setInterval(() => {
+            longTouch = true;
+            updateCount(-1);
+          }, 500);
 
-            $option.addEventListener('touchend', () => {
-              $option.classList.remove('is-active');
-              window.clearInterval(timer);
-              if (!longTouch) {
-                updateCount(1);
-              }
-            }, { once: true });
+          $option.addEventListener(isTouch ? 'touchend' : 'mouseup', () => {
+            $option.classList.remove('is-active');
+            window.clearInterval(timer);
+            if (!longTouch) {
+              updateCount(1);
+            }
+          }, { once: true });
 
-            $option.classList.add('is-active');
-            event.preventDefault();
-          });
-        } else {
-          $option.addEventListener('click', () => {
-            updateCount(1);
-          });
-        }
+          $option.classList.add('is-active');
+          event.preventDefault();
+        });
       }
 
       function parseAnyFloat(value) {
