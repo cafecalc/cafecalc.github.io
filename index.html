@@ -58,11 +58,16 @@
       justify-content: right;
       align-items: center;
     }
-    #calculator.is-change > .result #total {
+    #calculator.is-change .result #total {
       color: var(--change-color);
     }  
-    #calculator.is-change-missing > .result {
+    #calculator.is-change-missing .result {
       background-color: var(--change-color);
+    }
+    #calculator.is-deposit-changed #deposit > span {
+      text-decoration: underline wavy var(--change-color);
+      text-decoration-thickness: 0.1em;
+      text-underline-position: under;
     }
     #calculator > .result #cash {
       border: none;
@@ -90,10 +95,7 @@
     #calculator > .result #total::after {
       content: "\2007";
     }
-    #calculator #depcount {
-      font-weight: bold;
-    }
-    .option, .switch label, .clear {
+    .option, .switch, .clear {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -108,7 +110,7 @@
       border-color: inherit;
       color: var(--cat-color, inherit);
     }
-    .option.is-active {
+    .option.is-active, .switch.is-active {
       opacity: 0.75;
     }
     .clear {
@@ -123,7 +125,7 @@
     .option.cat3 {
       --cat-color: var(--cat3-color);
     }
-    .option::before {
+    .option::before, .switch::before {
       content: '\2007\00a0';
       font-weight: bold;
     }
@@ -132,20 +134,21 @@
       border-color: var(--cat-color);
       color: var(--bg-color);
     }
-    .option[data-count]:not([data-count='']):not([data-count='0'])::before {
+    .option[data-count]:not([data-count='']):not([data-count='0'])::before,
+    .switch[data-checked][data-count]:not([data-count='']):not([data-count='0'])::before {
       content: attr(data-count) '\00a0';
     }
     .option:not([data-price=''])::after{
       content: '\00a0' attr(data-price);
     }
-    .switch [type='checkbox'] {
-      display: none;
+    .switch::after{
+      content: '\00a0\2007';
+      font-weight: bold;
     }
-    .switch [type='checkbox'] + label {
-      cursor: pointer;
+    .switch:not([data-checked]) {
       text-decoration: line-through;
     }
-    .switch [type='checkbox']:checked + label {
+    .switch[data-checked] {
       background-color: var(--fg-color);
       border-color: var(--fg-color);
       color: var(--bg-color);
@@ -179,45 +182,74 @@
       const $clear = $calc.querySelector('#clear');
       const $member = $calc.querySelector('#member');
       const $deposit = $calc.querySelector('#deposit');
-      const $depcount = $calc.querySelector('#depcount');
       const $options = $calc.querySelectorAll('.option');
 
       $clear.addEventListener('click', () => {
         $cash.textContent = '';
-        for (const $option of $options) {
+        for (const $option of [...$options, $deposit]) {
           $option.removeAttribute('data-count');
         }
         calc();
       });
 
       $cash.addEventListener('input', () => calc());
-      $member.addEventListener('change', () => calc());
-      $deposit.addEventListener('change', () => calc());
+
+      addTapListener($member,
+        () => { toggleSwitch($member); calc(); }, null);
+
+      addTapListener($deposit,
+        () => { toggleSwitch($deposit); calc(); },
+        () => {
+          if ($deposit.hasAttribute('data-checked')) {
+            updateCount($deposit, -1);
+            calc();
+          }
+        });
 
       for (const $option of $options) {
-        const updateCount = (amount) => {
-          const count = Number.parseInt($option.getAttribute('data-count')) || 0;
-          $option.setAttribute('data-count', count + amount > 0 &&  count + amount < 50 ? count + amount : 0);
-          calc();
+        const action = (amount) => {
+          if (updateCount($option, amount)) {
+            updateCount($deposit, amount);
+            calc();
+          }
         };
 
-        $option.addEventListener(isTouch ? 'touchstart' : 'mousedown', (event) => {
+        addTapListener($option, () => action(1), () => action(-1));
+      }
+
+      function updateCount($e, amount) {
+        const count = Number.parseInt($e.getAttribute('data-count')) || 0;
+        const updated = count + amount > 0 && count + amount < 50 ? count + amount : 0;
+        $e.setAttribute('data-count', updated);
+        return count !== updated;
+      }
+
+      function toggleSwitch($switch){
+        if (!$switch.hasAttribute('data-checked')) {
+          $switch.setAttribute('data-checked', 'true');
+        } else {
+          $switch.removeAttribute('data-checked');
+        }
+      }
+
+      function addTapListener($e, onTap, onHold) {
+        $e.addEventListener(isTouch ? 'touchstart' : 'mousedown', (event) => {
           let longTouch = false;
 
           const timer = window.setInterval(() => {
             longTouch = true;
-            updateCount(-1);
+            onHold?.();
           }, 500);
 
-          $option.addEventListener(isTouch ? 'touchend' : 'mouseup', () => {
-            $option.classList.remove('is-active');
+          $e.addEventListener(isTouch ? 'touchend' : 'mouseup', () => {
+            $e.classList.remove('is-active');
             window.clearInterval(timer);
             if (!longTouch) {
-              updateCount(1);
+              onTap?.();
             }
           }, { once: true });
 
-          $option.classList.add('is-active');
+          $e.classList.add('is-active');
           event.preventDefault();
         });
       }
@@ -229,28 +261,40 @@
 
       function calc() {
         const cash = parseAnyFloat($cash.textContent) || 0;
-        const member = $member.checked ? parseAnyFloat($member.getAttribute('data-price')) : 0;
-        const deposit = $deposit.checked ? parseAnyFloat($deposit.getAttribute('data-price')) : 0;
+        const tokens = Number.parseInt($deposit.getAttribute('data-count')) || 0;
+        const member = $member.hasAttribute('data-checked') ? parseAnyFloat($member.getAttribute('data-price')) : 0;
+        const deposit = $deposit.hasAttribute('data-checked') ? parseAnyFloat($deposit.getAttribute('data-price')) : 0;
 
         let total = 0;
-        let depcount = 0;
+        let items = 0;
         for (const $option of $options) {
           const count = Number.parseInt($option.getAttribute('data-count')) || 0;
           const price = parseAnyFloat($option.getAttribute('data-price'));
-          total += count * (price + member + deposit);
-          depcount += count;
+          total += count * (price + member);
+          items += count;
         }
+
+        total += tokens * deposit;
 
         $calc.classList.remove('is-change');
         $calc.classList.remove('is-change-missing');
+        $calc.classList.remove('is-deposit-changed');
 
         if (cash > 0) {
           total = total - cash;
           $calc.classList.add(total <= 0 ? 'is-change' : 'is-change-missing');
         }
 
+        if (deposit > 0 && tokens != items) {
+          if (tokens >= 1) {
+            $calc.classList.add('is-deposit-changed');
+          } else {
+            $deposit.setAttribute('data-count', items);
+            $deposit.removeAttribute('data-checked');
+          }
+        }
+
         $total.textContent = total.toLocaleString(locale, { style: 'currency', currency: 'EUR' });
-        $depcount.textContent = $deposit.checked && depcount > 0 ? depcount : '\u2007';
       }
 
       calc();
@@ -264,14 +308,8 @@
     <div id="total"></div>
     <button class="clear" id="clear">&ensp;AC&ensp;</button>
   </div>
-  <div class="switch">
-    <input type="checkbox" id="member" data-price="-0.2" checked/>
-    <label for="member"><span>&numsp;&nbsp;</span>Mitglied<span>&nbsp;&numsp;</span></label>
-  </div>
-  <div class="switch">
-    <input type="checkbox" id="deposit" data-price="2" checked/>
-    <label for="deposit"><span id="depcount"></span>&nbsp;Pfand<span>&nbsp;&numsp;</span></label>
-  </div>
+  <button class="switch" id="member" data-price="-0,2" data-checked>Mitglied</button>
+  <button class="switch" id="deposit" data-price="2,00" data-checked><span>Pfand</span></button>
   <button class="option cat3" data-price="4,50">Cocktail</button>
   <button class="option cat3" data-price="3,50">Longdrink</button>
   <button class="option cat3" data-price="1,70">Shot</button>
