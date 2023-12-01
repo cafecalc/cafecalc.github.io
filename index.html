@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="robots" content="noindex, nofollow">
   <title>DY Calc</title>
@@ -65,9 +66,8 @@
       background-color: var(--change-color);
     }
     #calculator.is-deposit-changed #deposit > span {
-      text-decoration: underline wavy var(--change-color);
-      text-decoration-thickness: 0.1em;
-      text-underline-position: under;
+      border-top: 0.2em solid transparent;
+      border-bottom: 0.2em solid var(--change-color);
     }
     #calculator > .result #cash {
       border: none;
