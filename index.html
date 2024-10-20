@@ -193,6 +193,10 @@
         calc();
       });
 
+      // prevent new lines
+      $cash.addEventListener('keydown',
+        (e) => { if (e.keyCode === 13) { e.preventDefault(); } });
+
       $cash.addEventListener('input', () => calc());
 
       addTapListener($member,
