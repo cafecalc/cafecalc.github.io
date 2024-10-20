@@ -1,5 +1,5 @@
 # Simple workflow for deploying static content to GitHub Pages
-# lifted from: https://github.com/actions/starter-workflows/blob/1dc689b281a29f0f4baaea4faf2783412735b44e/pages/static.yml#L1
+# lifted from: https://github.com/actions/starter-workflows/blob/666350e29b10d665a82d5c6d1501a29e50d63c29/pages/static.yml#L1
 name: Deploy to Pages
 
 on:
@@ -31,16 +31,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Update service worker cache name
         shell: sh
         run: |
           sed -i -E 's/^(\s+const cacheName = )null(;)/\1"git_${{ github.sha }}"\2/' ./serviceworker.js
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: '.'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
