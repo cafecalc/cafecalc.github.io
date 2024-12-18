@@ -2,10 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#000000">
   <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="icon-512.png" type="image/png">
+  <link rel="manifest" href="manifest.json" />
   <title>DY Calc</title>
   <style>
     :root {
@@ -198,7 +202,7 @@
 
       // prevent new lines
       $cash.addEventListener('keydown',
-        (e) => { if (e.keyCode === 13) { e.preventDefault(); } });
+        (e) => { if (e.keyCode === 13) { e.preventDefault(); $cash.blur(); } });
 
       // workaround weird iOS scrolling on double tap after keyboard opened
       // see: https://bugs.webkit.org/show_bug.cgi?id=222654
@@ -317,7 +321,7 @@
 <body>
 <div id="calculator">
   <div class="result">
-    <div id="cash" inputmode="decimal" contenteditable="true"></div>
+    <div id="cash" inputmode="decimal" contenteditable="true" enterkeyhint="done"></div>
     <div id="total"></div>
     <button class="clear" id="clear">&ensp;AC&ensp;</button>
   </div>
