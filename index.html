@@ -16,7 +16,7 @@
       --cat2-color: rgb(255, 255, 75);
       --cat3-color: rgb(75, 128, 255);
     }
-    html,body {
+    html, body {
       margin: 0;
       padding: 0;
       touch-action: none;
@@ -199,6 +199,11 @@
       // prevent new lines
       $cash.addEventListener('keydown',
         (e) => { if (e.keyCode === 13) { e.preventDefault(); } });
+
+      // workaround weird iOS scrolling on double tap after keyboard opened
+      // see: https://bugs.webkit.org/show_bug.cgi?id=222654
+      window.addEventListener("scroll",
+        (e) => { e.preventDefault(); window.scrollTo(0, 0); });
 
       $cash.addEventListener('input', () => calc());
 
