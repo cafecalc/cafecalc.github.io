@@ -192,6 +192,22 @@
       const $deposit = $calc.querySelector('#deposit');
       const $options = $calc.querySelectorAll('.option');
 
+      // process time based price changes
+      for (const $option of [...$options, $member, $deposit]) {
+        if (!$option.hasAttribute('data-price-change')) {
+          continue;
+        }
+
+        const changeOpts = $option.getAttribute('data-price-change').split(';');
+        const from = Date.parse(changeOpts[1]) || 0;
+        const till = Date.parse(changeOpts[2]) || 0;
+        const now = Date.now();
+
+        if ((from === 0 || from < now) && (till === 0 || till > now) && (from || till)) {
+          $option.setAttribute('data-price', changeOpts[0]);
+        }
+      }
+
       $clear.addEventListener('click', () => {
         $cash.textContent = '';
         for (const $option of [...$options, $deposit]) {
@@ -325,19 +341,19 @@
     <div id="total"></div>
     <button class="clear" id="clear">&ensp;AC&ensp;</button>
   </div>
-  <button class="switch" id="member" data-price="-0,2">Mitglied</button>
+  <button class="switch" id="member" data-price="-0,2" data-price-change="-0,5;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Mitglied</button>
   <button class="switch" id="deposit" data-price="2,00" data-checked><span>Pfand</span></button>
-  <button class="option cat3" data-price="4,50">Cocktail</button>
-  <button class="option cat3" data-price="3,50">Lillet<br>Longdrink</button>
-  <button class="option cat3" data-price="1,70">Shot</button>
-  <button class="option cat3" data-price="2,70">Aperol</button>
-  <button class="option cat1" data-price="3,50">Ginlt.<br>Cocktail</button>
-  <button class="option cat2" data-price="2,70">Wein<br>Spritz</button>
-  <button class="option cat1" data-price="3,00">Alkfr.<br>Cocktail</button>
-  <button class="option cat2" data-price="2,30">Bier<br>Radler</button>
-  <button class="option cat1" data-price="2,20">Bull<br>Mate</button>
-  <button class="option cat1" data-price="1,70">Softdrink</button>
-  <button class="option cat1" data-price="1,20">Soda<br>Snack</button>
+  <button class="option cat3" data-price="4,50" data-price-change="6,50;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Cocktail</button>
+  <button class="option cat3" data-price="3,50" data-price-change="5,00;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Lillet<br>Longdrink</button>
+  <button class="option cat3" data-price="1,70" data-price-change="3,20;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Shot</button>
+  <button class="option cat3" data-price="2,70" data-price-change="4,20;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Aperol</button>
+  <button class="option cat1" data-price="3,50" data-price-change="4,50;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Ginlt.<br>Cocktail</button>
+  <button class="option cat2" data-price="2,70" data-price-change="4,20;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Wein<br>Spritz</button>
+  <button class="option cat1" data-price="3,00" data-price-change="4,00;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Alkfr.<br>Cocktail</button>
+  <button class="option cat2" data-price="2,30" data-price-change="3,80;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Bier<br>Radler</button>
+  <button class="option cat1" data-price="2,20" data-price-change="3,20;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Bull<br>Mate</button>
+  <button class="option cat1" data-price="1,70" data-price-change="2,70;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Softdrink</button>
+  <button class="option cat1" data-price="1,20" data-price-change="2,20;2025-06-25T16:00:00+02:00;2025-06-28T04:00:00+02:00">Soda<br>Snack</button>
 </div>
 </body>
 </html>
