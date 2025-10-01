@@ -81,6 +81,13 @@
       white-space: nowrap;
       overflow: hidden;
     }
+    #calculator > .result #time {
+      font-size: 1em;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);      
+      opacity: 0.5;
+    }
     #calculator > .result #cash:empty::before {
       display: block;
       content: '';
@@ -162,6 +169,60 @@
       color: var(--bg-color);
       text-decoration: inherit;
     }
+
+    #cash-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      color: var(--fg-color);
+      display: none;
+      z-index: 9999;
+      padding: 1em;
+      box-sizing: border-box;
+      touch-action: none;
+    }
+    #cash-overlay.is-open {
+      display: block;
+    }
+    .cash-ovl-grid4 {
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: auto repeat(3, 1fr) 1fr;
+      gap: 0.6em;
+    }
+    .cell {
+      border: 0.15em solid currentColor;
+      border-radius: 0.3em;
+      background: var(--bg-color);
+      color: var(--fg-color);
+      font-size: 1.8em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .amount {
+      grid-column: 1 / span 3;
+      grid-row: 1;
+      font-size: 2.8em;
+      justify-content: flex-start;
+      padding: 0 0.2em;
+    }
+    .confirm {grid-column: 4;grid-row: 1 / span 4;}
+    .k1      {grid-column: 1; grid-row: 2;}
+    .k2      {grid-column: 2; grid-row: 2;}
+    .k3      {grid-column: 3; grid-row: 2;}
+    .k4      {grid-column: 1; grid-row: 3;}
+    .k5      {grid-column: 2; grid-row: 3;}
+    .k6      {grid-column: 3; grid-row: 3;}
+    .k7      {grid-column: 1; grid-row: 4;}
+    .k8      {grid-column: 2; grid-row: 4;}
+    .k9      {grid-column: 3; grid-row: 4;}
+    .k0a     {grid-column: 1; grid-row: 5;}
+    .k0b     {grid-column: 2; grid-row: 5;}
+    .kback   {grid-column: 3; grid-row: 5;}
+    .kclear  {grid-column: 4; grid-row: 5;}
   </style>
   <script>
     'use strict';
@@ -191,6 +252,117 @@
       const $member = $calc.querySelector('#member');
       const $deposit = $calc.querySelector('#deposit');
       const $options = $calc.querySelectorAll('.option');
+      const $overlay = document.getElementById("cash-overlay");
+      const $ovlAmount = document.getElementById("cash-ovl-amount");
+      const $ovlConfirm = document.getElementById("cash-ovl-close");
+
+      // State buffer for typed amount
+      let cashBuffer = "0";
+      let hasDecimal = false;
+      const dec = ","; // decimal separator
+
+      // Helper to parse any float from text, compatible with both comma/dot
+      function parseAnyFloat(text) {
+        return Number.parseFloat(text.replace(dec, "."));
+      }
+
+      function syncOverlayFromCash() {
+        const current = ($cash.textContent);
+        if (!current) {
+          cashBuffer = "0";
+          hasDecimal = false;
+        } else {
+          cashBuffer = current;
+          const n = parseAnyFloat(current);
+          if (Number.isInteger(n)) {
+            hasDecimal = false;
+          } else {
+            hasDecimal = true;
+          }
+        }
+        $ovlAmount.textContent = cashBuffer;
+      }
+
+      function applyCashBuffer() {
+        if (cashBuffer === "0") {
+          $cash.textContent = "";
+        } else {
+          if (cashBuffer.slice(-1) === dec) {
+            cashBuffer = cashBuffer.slice(0, -1);
+          }
+          $cash.textContent = cashBuffer;
+        }
+        calc();
+      }
+
+      function openCashOverlay() {
+        syncOverlayFromCash();
+        if (!cashBuffer) $ovlAmount.textContent = "0";
+        $overlay.classList.add("is-open");
+        $overlay.style.display = "block";
+        $overlay.setAttribute("aria-hidden", "false");
+      }
+
+      function closeCashOverlay() {
+        applyCashBuffer();
+        $overlay.classList.remove("is-open");
+        $overlay.style.display = "none";
+        $overlay.setAttribute("aria-hidden", "true");
+      }
+
+      function handlePadKey(key, action) {
+        if (action === "back") {
+          if (cashBuffer.length) {
+            const removed = cashBuffer.slice(-1);
+            cashBuffer = cashBuffer.slice(0, -1);
+            if (removed === dec) hasDecimal = false;
+            if (!cashBuffer.length) cashBuffer = "0";
+          }
+        } else if (action === "clear") {
+          cashBuffer = "0";
+          hasDecimal = false;
+        } else if (key != null) {
+          if (key === dec || key === ".") {
+            if (!hasDecimal) {
+              cashBuffer = cashBuffer.length ? cashBuffer + dec : "0" + dec;
+              hasDecimal = true;
+            }
+          } else if (/\d/.test(key)) {
+            if (!hasDecimal) {
+              // integer side, avoid leading zeros
+              cashBuffer = cashBuffer === "0" ? key : cashBuffer + key;
+            } else {
+              // fractional side, cap at 2 digits
+              const [, frac = ""] = cashBuffer.split(dec);
+              if (frac.length < 2) {
+                cashBuffer += key;
+              }
+              // else ignore extra fractional digits
+            }
+          }
+        }
+        $ovlAmount.textContent = cashBuffer;
+      }
+
+      // Click handling for any keypad cell
+      $overlay.addEventListener("click", (e) => {
+        const btn = e.target.closest(".cell");
+        if (!btn) return;
+        if (btn === $ovlConfirm) {
+          closeCashOverlay();
+          return;
+        }
+        const key = btn.getAttribute("data-key");
+        const action = btn.getAttribute("data-action");
+        if (key || action) {
+          handlePadKey(key, action);
+        }
+      });
+
+      // Open overlay when the cash field is clicked/tapped
+      $cash.addEventListener("click", () => {
+        openCashOverlay();
+      });
 
       // process time based price changes
       for (const $option of [...$options, $member, $deposit]) {
@@ -216,16 +388,10 @@
         calc();
       });
 
-      // prevent new lines
-      $cash.addEventListener('keydown',
-        (e) => { if (e.keyCode === 13) { e.preventDefault(); $cash.blur(); } });
-
       // workaround weird iOS scrolling on double tap after keyboard opened
       // see: https://bugs.webkit.org/show_bug.cgi?id=222654
       window.addEventListener("scroll",
         (e) => { e.preventDefault(); window.scrollTo(0, 0); });
-
-      $cash.addEventListener('input', () => calc());
 
       addTapListener($member,
         () => { toggleSwitch($member); calc(); }, null);
@@ -290,11 +456,6 @@
         });
       }
 
-      function parseAnyFloat(value) {
-        const s = value.replace(',','.');
-        return !isNaN(s) && Number.parseFloat(s);
-      }
-
       function calc() {
         const cash = parseAnyFloat($cash.textContent) || 0;
         const tokens = Number.parseInt($deposit.getAttribute('data-count')) || 0;
@@ -307,7 +468,13 @@
           const count = Number.parseInt($option.getAttribute('data-count')) || 0;
           const price = parseAnyFloat($option.getAttribute('data-price'));
           const noItem = $option.hasAttribute('data-no-item');
-          total += count * (price + member);
+          const memberNoDiscount = $option.hasAttribute(
+            "data-member-no-discount"
+          );
+          total += count * price;
+          if (!memberNoDiscount) {
+            total += count * member;
+          }
           items += noItem ? 0 : count;
         }
 
@@ -332,8 +499,91 @@
         }
 
         $total.textContent = total.toLocaleString(locale, { style: 'currency', currency: 'EUR' });
+        pushHistory();
       }
 
+      // Save last 20 states as history with the option to restore the previous one
+      const history = [];
+      function pushHistory() {
+        const state = {
+          cash: $cash.textContent,
+          member: $member.getAttribute('data-checked'),
+          deposit: $deposit.getAttribute('data-checked'),
+          depositCount: $deposit.getAttribute('data-count') || '0',
+          options: [...$options].map($o => $o.getAttribute('data-count') || '0'),
+        };
+        const lastState = history[history.length - 1];
+        if (JSON.stringify(state) !== JSON.stringify(lastState)) {
+          history.push(state);
+          if (history.length > 20) {
+            history.shift();
+          }
+        }
+      }
+      function popHistory() {
+        if (history.length < 2) return;
+        history.pop(); // current state
+        const state = history.pop(); // previous state
+        if (!state) return;
+
+        $cash.textContent = state.cash;
+        if (state.member === 'true') {
+          $member.setAttribute('data-checked', 'true');
+        } else {
+          $member.removeAttribute('data-checked');
+        }
+        if (state.deposit === 'true') {
+          $deposit.setAttribute('data-checked', 'true');
+        } else {
+          $deposit.removeAttribute('data-checked');
+        }
+        $deposit.setAttribute('data-count', state.depositCount);
+        state.options.forEach((count, i) => {
+          if (count != null) {
+            $options[i].setAttribute('data-count', count);
+          }
+        });
+        calc();
+      }
+      $calc.querySelector('#time').addEventListener('click', () => {
+        popHistory();
+      });
+
+      // Clears all inputs after 5 minutes of inactivity
+      let inactivityTimer;
+      const resetInactivityTimer = () => {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+          $ovlConfirm.click();
+          $clear.click();
+        }, 5 * 60 * 1000);
+      };
+      document.addEventListener("keydown", resetInactivityTimer);
+      document.addEventListener("mousedown", resetInactivityTimer);
+      document.addEventListener("touchstart", resetInactivityTimer);
+      document.addEventListener("input", resetInactivityTimer);
+      resetInactivityTimer();
+
+      // Update current time every second
+      async function showCurrentTime() {
+        const el = document.getElementById("time");
+        if (!el) return;
+
+        const options = {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+          timeZone: "Europe/Berlin"
+        };
+
+        while (true) {
+          const now = new Date();
+          el.textContent = now.toLocaleTimeString("de-DE", options);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+      showCurrentTime();
+      
       calc();
     });
   </script>
@@ -341,16 +591,17 @@
 <body>
 <div id="calculator">
   <div class="result">
-    <div id="cash" inputmode="decimal" contenteditable="true" enterkeyhint="done"></div>
+    <div id="cash"></div>
+    <div id="time"></div>
     <div id="total"></div>
     <button class="clear" id="clear">&ensp;AC&ensp;</button>
   </div>
   <button class="switch" id="member" data-price="-0,2" data-price-change="-0,5;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Mitglied</button>
-  <button class="switch" id="deposit" data-price="2,00" data-checked><span>Pfand</span></button>
+  <button class="switch" id="deposit" data-price="2,00" data-checked="true"><span>Pfand</span></button>
   <button class="option cat3" data-price="4,50" data-price-change="6,50;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Cocktail</button>
   <button class="option cat3" data-price="3,50" data-price-change="5,00;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Lillet<br>Longdrink</button>
-  <button class="option cat3" data-price="1,00" data-price-change="2,50;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00" data-no-item>2 cl.<br>Extra Shot</button>
-  <button class="option cat3" data-price="1,70" data-price-change="3,20;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Shot</button>
+  <button class="option cat3" data-price="1,00" data-price-change="2,50;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00" data-no-item data-member-no-discount>2 cl.<br>Extra Shot</button>
+  <button class="option cat3" data-price="1,70" data-price-change="3,20;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00" data-no-item>Shot</button>
   <button class="option cat3" data-price="2,70" data-price-change="4,20;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Aperol</button>
   <button class="option cat1" data-price="3,50" data-price-change="4,50;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Ginlt.<br>Cocktail</button>
   <button class="option cat2" data-price="2,70" data-price-change="4,20;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Wein<br>Spritz</button>
@@ -359,6 +610,25 @@
   <button class="option cat1" data-price="2,20" data-price-change="3,20;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Bull<br>Mate</button>
   <button class="option cat1" data-price="1,70" data-price-change="2,70;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00">Softdrink</button>
   <button class="option cat1" data-price="1,20" data-price-change="2,20;2025-06-25T16:00:00+02:00;2025-06-28T18:00:00+02:00" data-no-item>Soda<br>Snack</button>
+</div>
+<div id="cash-overlay" aria-hidden="true">
+  <div class="cash-ovl-grid4">
+    <div class="cell amount" id="cash-ovl-amount"></div>
+    <button class="cell k1" data-key="1">1</button>
+    <button class="cell k2" data-key="2">2</button>
+    <button class="cell k3" data-key="3">3</button>
+    <button class="cell k4" data-key="4">4</button>
+    <button class="cell k5" data-key="5">5</button>
+    <button class="cell k6" data-key="6">6</button>
+    <button class="cell k7" data-key="7">7</button>
+    <button class="cell k8" data-key="8">8</button>
+    <button class="cell k9" data-key="9">9</button>
+    <button class="cell k0a" data-key=",">,</button>
+    <button class="cell k0b" data-key="0">0</button>
+    <button class="cell kback" data-action="back">⌫</button>
+    <button class="cell confirm" id="cash-ovl-close">✓</button>
+    <button class="cell kclear" data-action="clear">⟲</button>
+  </div>
 </div>
 </body>
 </html>
